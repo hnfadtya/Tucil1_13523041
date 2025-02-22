@@ -1,29 +1,25 @@
 package src;
 
+import java.io.*;
 import java.util.*;
 
 public class Main {
-    public static Scanner scan;
     public static void main(String[] args) {
-        int isLaunch = 0;
-        int pilihan, pilihanMet;
-        String tipe;
-        clearScreen();
-        System.out.println("""
-        Selamat datang di aplikasi kami!
-        ini adalah blablabla.
-        """
-        ); 
-        System.out.print("\n\n\n");
-        
-        while (true) { 
-            // double[][] M;
-            if (isLaunch == 1) clearScreen();
-            isLaunch = 1;
-            scan = new Scanner(System.in);
-            System.out.print("Masukkan nama file (dalam .txt):");
-            String filename = scan.next();
-            Solve.readFile(filename);
+        if (args.length < 1) {
+            System.out.println("Harap masukkan nama file sebagai argumen.");
+            return;
+        }
+
+        String filename = args[0];
+        Solver solver = new Solver();
+
+        try {
+            solver.loadFile(filename);
+            Board board = new Board(solver.getWidth(), solver.getHeight());
+            solver.getBlocks();
+            // solver.solve(board);
+        } catch (IOException e) {
+            System.out.println("Terjadi kesalahan saat membaca file.");
         }
     }
     // Border untuk styling
@@ -43,6 +39,7 @@ public class Main {
     }
 
     // Konfirmasi kembali ke menu
+    public static Scanner scan;
     public static void confirmExit() {
         System.out.print("Kembali ke menu ");
         scan = new Scanner(System.in);
