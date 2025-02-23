@@ -6,7 +6,7 @@ import java.util.*;
 public class Main {
     public static void main(String[] args) {
         if (args.length < 1) {
-            System.out.println("Harap masukkan nama file sebagai argumen.");
+            System.out.println("Gunakan: java src.Main <nama_file_input>");
             return;
         }
 
@@ -14,13 +14,12 @@ public class Main {
         Solver solver = new Solver();
 
         try {
-            solver.loadFile(filename);
-            Board board = new Board(solver.getWidth(), solver.getHeight());
-            solver.getBlocks();
-            // solver.solve(board);
+            solver.loadFile(filename); // Membaca file dari folder test
+            solver.solve(); // Menjalankan solver brute force
+            solver.printSolution(); // Menampilkan hasil penyelesaian
         } catch (IOException e) {
-            System.out.println("Terjadi kesalahan saat membaca file.");
-        }
+            System.out.println("Terjadi kesalahan saat membaca file: " + e.getMessage());
+        }    
     }
     // Border untuk styling
     public static void border() {
