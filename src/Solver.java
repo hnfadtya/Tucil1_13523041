@@ -9,16 +9,18 @@ public class Solver {
     private char[][] board;
     private int checkedCases = 0;
     private boolean solutionFound = false; // Tambahkan flag solusi ditemukan
+    public static final String RESET = "\u001B[0m";
 
+    /* ============== FILE PROCESSING =================*/
     public void loadFile(String filename) throws IOException {
         BufferedReader br = new BufferedReader(new FileReader(filename));
         String[] size = br.readLine().split(" ");
         width = Integer.parseInt(size[0]);
         height = Integer.parseInt(size[1]);
         int numBlocks = Integer.parseInt(size[2]);
-
+        
         br.readLine(); // Abaikan baris DEFAULT
-
+        
         for (int i = 0; i < numBlocks; i++) {
             List<String> shapeLines = new ArrayList<>();
             String line;
@@ -43,7 +45,7 @@ public class Solver {
         int cols = getColumnLenght(shapeLines, rows); // harusnya dicari kolom terpanjang
         System.out.println(cols);
         int[][] shape = new int[rows][cols];
-
+        
         for (int r = 0; r < rows; r++) {
             int lineLenght = shapeLines.get(r).length();
             for (int c = 0; c < lineLenght; c++) {
@@ -64,7 +66,8 @@ public class Solver {
         }
         return columnLenght;
     }
-
+    
+    /* ============== PROBLEM SOLVING =================*/
     public boolean solve() {
         board = new char[height][width];
         for (char[] row : board) Arrays.fill(row, '.');
@@ -73,7 +76,7 @@ public class Solver {
     }
 
     private boolean placeBlock(int index) {
-        if (solutionFound) return true; // Jika solusi sudah ditemukan, hentikan rekursi
+        if (solutionFound) return true; 
 
         if (index == blocks.size()) {
             solutionFound = true;
@@ -81,13 +84,12 @@ public class Solver {
         }
 
         Block block = blocks.get(index);
-        List<int[][]> transformations = getAllTransformations(block.getShape());
+        List<int[][]> transformations = block.getAllTransformations();
 
         for (int[][] shape : transformations) {
             for (int r = 0; r <= height - shape.length; r++) {
                 for (int c = 0; c <= width - shape[0].length; c++) {
-                    checkedCases++; // Tambah jumlah kasus yang diperiksa
-
+                    checkedCases++; 
                     if (canPlace(shape, r, c)) {
                         place(shape, r, c, block.getId());
                         if (placeBlock(index + 1)) return true;
@@ -96,11 +98,7 @@ public class Solver {
                 }
             }
         }
-        return false; // Jika tidak bisa menempatkan blok, backtrack
-    }
-
-    public int getCheckedCases() {
-        return checkedCases;
+        return false; // backtrack
     }
 
     private boolean canPlace(int[][] shape, int r, int c) {
@@ -136,53 +134,18 @@ public class Solver {
 
     public void printSolution() {
         System.out.println("Solusi ditemukan:");
-        for (char[] row : board) {
-            for (char cell : row) {
-                System.out.print(cell + " ");
+        for (int i = 0; i < board.length; i++) {
+            for (int j = 0; j < board[i].length; j++) {
+                char cell = board[i][j];
+                Block block = blocks.get(cell - 'A');
+                String color = block.getColor(cell);
+                System.out.print(color + cell + " " + RESET);
             }
             System.out.println();
         }
     }
 
-    private List<int[][]> getAllTransformations(int[][] shape) {
-        List<int[][]> transformations = new ArrayList<>();
-        transformations.add(shape);
-        transformations.add(rotateBlock(shape));
-        transformations.add(rotateBlock(transformations.get(1)));
-        transformations.add(rotateBlock(transformations.get(2)));
-
-        int[][] flipped = reflectBlock(shape);
-        transformations.add(flipped);
-        transformations.add(rotateBlock(flipped));
-        transformations.add(rotateBlock(transformations.get(5)));
-        transformations.add(rotateBlock(transformations.get(6)));
-
-        return transformations;
-    }
-
-    private int[][] rotateBlock(int[][] shape) {
-        int rows = shape.length;
-        int cols = shape[0].length;
-        int[][] rotated = new int[cols][rows];
-
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < cols; j++) {
-                rotated[j][rows - 1 - i] = shape[i][j];
-            }
-        }
-        return rotated;
-    }
-
-    private int[][] reflectBlock(int[][] shape) {
-        int rows = shape.length;
-        int cols = shape[0].length;
-        int[][] reflected = new int[rows][cols];
-
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < cols; j++) {
-                reflected[i][cols - 1 - j] = shape[i][j];
-            }
-        }
-        return reflected;
+    public int getCheckedCases() {
+        return checkedCases;
     }
 }
