@@ -8,7 +8,7 @@ public class Solver {
     private List<Block> blocks = new ArrayList<>();
     private char[][] board;
     private int checkedCases = 0;
-    private boolean solutionFound = false; // Tambahkan flag solusi ditemukan
+    private boolean solutionFound = false; 
     public static final String RESET = "\u001B[0m";
 
     /* ============== FILE PROCESSING =================*/
@@ -17,47 +17,63 @@ public class Solver {
         String[] size = br.readLine().split(" ");
         width = Integer.parseInt(size[0]);
         height = Integer.parseInt(size[1]);
-        int numBlocks = Integer.parseInt(size[2]);
-        
-        br.readLine(); // Abaikan baris DEFAULT
-        
-        for (int i = 0; i < numBlocks; i++) {
-            List<String> shapeLines = new ArrayList<>();
-            String line;
-            
-            while ((line = br.readLine()) != null) {
-                shapeLines.add(line);
-                if (shapeLines.size() > 1 && line.length() != shapeLines.get(0).length()) {
-                    break; // Jika panjang baris berubah, kemungkinan blok baru dimulai (antisipasi kesalahan format)
-                }
-            }
-            System.out.println(shapeLines);
-            if (!shapeLines.isEmpty()) {
-                addBlock((char) ('A' + i), shapeLines);
-            }
-        }
+        int numBlocks = Integer.parseInt(size[2]); 
 
+        br.readLine(); // Abaikan baris DEFAULT
+
+        List<String> shapeLines = new ArrayList<>();
+        char blockId = ' ';
+        char prevChar = ' '; 
+    
+        String line;
+        while ((line = br.readLine()) != null && blocks.size() < numBlocks) { // defaultnya program berhenti membaca blok ketika jumlahnya sudah sesuai dengan numBlocks
+            line = line.trim();
+            if (line.isEmpty()) continue; // baris kosong
+    
+            if (prevChar != ' ' && line.charAt(0) != prevChar) {
+                addBlock(blockId, shapeLines); // menyimpan blok sebelumnya
+                shapeLines.clear();
+            }
+    
+            if (shapeLines.isEmpty()) {
+                blockId = getCharFromString(line);
+            }
+
+            shapeLines.add(line);
+            System.out.println(shapeLines);
+            prevChar = getCharFromString(line); 
+        }
+        
+        // Simpan blok terakhir dalam file jika masih ada data
+        if (!shapeLines.isEmpty()) {
+            addBlock(blockId, shapeLines);
+        }
+        
+        if (blocks.size() < numBlocks) {
+            IOException e = new IOException("Jumlah blok tidak sesuai");
+            throw e;
+        }
+        
         br.close();
     }
 
     private void addBlock(char id, List<String> shapeLines) {
         int rows = shapeLines.size();
-        int cols = getColumnLenght(shapeLines, rows); // harusnya dicari kolom terpanjang
+        int cols = getColumnLenght(shapeLines, rows); 
         System.out.println(cols);
         int[][] shape = new int[rows][cols];
-        
+
         for (int r = 0; r < rows; r++) {
             int lineLenght = shapeLines.get(r).length();
             for (int c = 0; c < lineLenght; c++) {
                 if (shapeLines.get(r).charAt(c) == id) {shape[r][c] = 1;} else shape[r][c] = 0;
-                System.out.println(shape[r][c]);
             }
         }
         // System.out.println(id);
         blocks.add(new Block(id, shape));
     }
 
-    public int getColumnLenght(List<String> shapeLines, int rows) {
+    private int getColumnLenght(List<String> shapeLines, int rows) {
         int columnLenght = shapeLines.get(0).length();
         for (int i = 1; i < rows; i++) {
             if (shapeLines.get(i).length() > columnLenght) {
@@ -67,6 +83,16 @@ public class Solver {
         return columnLenght;
     }
     
+    private char getCharFromString(String string) {
+        int index = 0;
+        while (index < string.length()){
+            if (string.charAt(index) != ' ') {
+                return string.charAt(index);
+            }
+        }
+        return ' ';
+    }
+
     /* ============== PROBLEM SOLVING =================*/
     public boolean solve() {
         board = new char[height][width];
@@ -100,7 +126,7 @@ public class Solver {
         }
         return false; // backtrack
     }
-
+    
     private boolean canPlace(int[][] shape, int r, int c) {
         for (int i = 0; i < shape.length; i++) {
             for (int j = 0; j < shape[i].length; j++) {
@@ -111,7 +137,7 @@ public class Solver {
         }
         return true;
     }
-
+    
     private void place(int[][] shape, int r, int c, char id) {
         for (int i = 0; i < shape.length; i++) {
             for (int j = 0; j < shape[i].length; j++) {
@@ -131,9 +157,8 @@ public class Solver {
             }
         }
     }
-
+    
     public void printSolution() {
-        System.out.println("Solusi ditemukan:");
         for (int i = 0; i < board.length; i++) {
             for (int j = 0; j < board[i].length; j++) {
                 char cell = board[i][j];
@@ -144,8 +169,35 @@ public class Solver {
             System.out.println();
         }
     }
-
+    
     public int getCheckedCases() {
         return checkedCases;
+    }
+    
+    /* ============== BOARD =================*/
+    public char[][] getBoard() {
+        return board;
+    }
+
+    public int getBoardCol() {
+        return width;
+    }
+
+    public int getBoardRow() {
+        return height;
+    }
+
+    public char getCell(int r, int c) {
+        return board[r][c];
+    }
+
+    public boolean isBoardFull() {
+        for (int i = 0; i < getBoardCol(); i++) {
+            for (int j = 0; j < getBoardRow(); j++) {
+                char cell = getCell(i, j);
+                if (cell == '.') return false;
+            }
+        }
+        return true;
     }
 }
