@@ -4,7 +4,7 @@ import java.io.*;
 import java.util.*;
 
 public class Solver {
-    private int width, height;
+    private int width, height, blockCount;
     private List<Block> blocks = new ArrayList<>();
     private char[][] board;
     private int checkedCases = 0;
@@ -15,21 +15,31 @@ public class Solver {
     public void loadFile(String filename) throws IOException {
         BufferedReader br = new BufferedReader(new FileReader(filename));
         String[] size = br.readLine().split(" ");
-        width = Integer.parseInt(size[0]);
-        height = Integer.parseInt(size[1]);
-        int numBlocks = Integer.parseInt(size[2]); 
+
+        try {
+            width = Integer.parseInt(size[0]);
+            height = Integer.parseInt(size[1]);
+            blockCount = Integer.parseInt(size[2]);             
+        } catch (Exception e) {
+            IOException ex = new IOException("Ukuran papan atau jumlah blok tidak valid");
+            throw ex;
+        }
 
         br.readLine(); // Abaikan baris DEFAULT
 
         List<String> shapeLines = new ArrayList<>();
         char blockId = ' ';
         char prevChar = ' '; 
-    
         String line;
-        while ((line = br.readLine()) != null && blocks.size() < numBlocks) { // defaultnya program berhenti membaca blok ketika jumlahnya sudah sesuai dengan numBlocks
+
+        while ((line = br.readLine()) != null) { // defaultnya program berhenti membaca blok ketika jumlahnya sudah sesuai dengan numBlocks
             line = line.trim();
             if (line.isEmpty()) continue; // baris kosong
-    
+            
+            if (!isLineValid(line, getCharFromString(line))) {
+                IOException e = new IOException("Blok tidak valid");
+                throw e;
+            }
             if (prevChar != ' ' && line.charAt(0) != prevChar) {
                 addBlock(blockId, shapeLines); // menyimpan blok sebelumnya
                 shapeLines.clear();
@@ -40,7 +50,6 @@ public class Solver {
             }
 
             shapeLines.add(line);
-            System.out.println(shapeLines);
             prevChar = getCharFromString(line); 
         }
         
@@ -49,7 +58,7 @@ public class Solver {
             addBlock(blockId, shapeLines);
         }
         
-        if (blocks.size() < numBlocks) {
+        if (blocks.size() != blockCount) {
             IOException e = new IOException("Jumlah blok tidak sesuai");
             throw e;
         }
@@ -60,7 +69,6 @@ public class Solver {
     private void addBlock(char id, List<String> shapeLines) {
         int rows = shapeLines.size();
         int cols = getColumnLenght(shapeLines, rows); 
-        System.out.println(cols);
         int[][] shape = new int[rows][cols];
 
         for (int r = 0; r < rows; r++) {
@@ -93,6 +101,16 @@ public class Solver {
         return ' ';
     }
 
+    private boolean isLineValid(String line, char id) {
+        for (int i = 0; i < line.length(); i++) {
+            char c = line.charAt(i);
+            if (c != ' ' && c != id) {
+                return false;
+            } 
+        }
+        return true;
+    }
+
     /* ============== PROBLEM SOLVING =================*/
     public boolean solve() {
         board = new char[height][width];
@@ -104,7 +122,7 @@ public class Solver {
     private boolean placeBlock(int index) {
         if (solutionFound) return true; 
 
-        if (index == blocks.size()) {
+        if (index == blockCount) { // basis rekursi
             solutionFound = true;
             return true;
         }
@@ -119,12 +137,12 @@ public class Solver {
                     if (canPlace(shape, r, c)) {
                         place(shape, r, c, block.getId());
                         if (placeBlock(index + 1)) return true;
-                        remove(shape, r, c);
+                        remove(shape, r, c); // backtrack jika tidak bisa ditempatkan
                     }
                 }
             }
         }
-        return false; // backtrack
+        return false;
     }
     
     private boolean canPlace(int[][] shape, int r, int c) {

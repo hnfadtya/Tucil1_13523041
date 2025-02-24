@@ -73,10 +73,6 @@ public class Main {
 
         scanner.close();
     }
-    // Border untuk styling
-    public static void border() {
-        System.out.println("+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+");
-    }
 
     private static void printHeader() {
         System.out.println("======================================");
